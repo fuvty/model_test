@@ -179,6 +179,8 @@ icl_inference_output/
 qllm_eval/evaluation/q_opencompass/configs/
 # OpenCompass Evaluation Scripts
 qllm_eval/evaluation/q_opencompass/scripts/
+qllm_eval/evaluation/q_long/*cases
+output/*
 
 # OpenCompass tools for listing configs
 tools/

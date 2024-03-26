@@ -27,6 +27,9 @@ def build_model_and_enc(model_path, use_flash_attn, kv_bit=16, kv_group_size=128
         config._flash_attn_2_enabled = False
         config._attn_implementation = None
 
+    config._attn_implementation = "eager"
+    config._attn_implementation_internal = "eager"
+
     # add the kv quantization parameters
     config.kv_bit = kv_bit
     config.kv_group_size = kv_group_size
