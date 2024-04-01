@@ -180,7 +180,13 @@ qllm_eval/evaluation/q_opencompass/configs/
 # OpenCompass Evaluation Scripts
 qllm_eval/evaluation/q_opencompass/scripts/
 qllm_eval/evaluation/q_long/*cases
+qllm_eval/evaluation/q_long/history
+qllm_eval/evaluation/q_long/*.csv
+qllm_eval/evaluation/q_long/*.jpg
+qllm_eval/evaluation/q_long/*.txt
+
 output/*
+
 
 # OpenCompass tools for listing configs
 tools/

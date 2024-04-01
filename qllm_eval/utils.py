@@ -42,7 +42,8 @@ def build_model_and_enc(model_path, use_flash_attn, kv_bit=16, kv_group_size=128
     enc = AutoTokenizer.from_pretrained(model_path, use_fast=use_fast, trust_remote_code=trust_remote_code)
 
     # load model
-    kwargs = {"torch_dtype": torch.float16, "device_map": "balanced"}
+    # kwargs = {"torch_dtype": torch.float16, "device_map": "balanced"}
+    kwargs = {"torch_dtype": torch.float16}
     model = AutoModelForCausalLM.from_pretrained(model_path, config=config, trust_remote_code=trust_remote_code, **kwargs)
     return model, enc
 
