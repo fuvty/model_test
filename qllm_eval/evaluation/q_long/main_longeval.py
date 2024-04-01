@@ -44,8 +44,7 @@ def longeval_test(model, tokenizer, output_dir, args):
                 break
             
     elif args.task == "lines":
-        for num_lines in [200, 300, 400, 500, 600, 680]:
-        # for num_lines in [600,680]:
+        for num_lines in args.num_lines:
             print(f"************ Start testing {num_lines} lines per LRT prompt ************")
             test_file = os.path.join(args.test_dir, f"lines/testcases/{num_lines}_lines.jsonl")
             
@@ -80,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument("--eval_shortest_only", action='store_true', default=0, help="Only eval the shortest case for illustration purpose")
     parser.add_argument("--test_dir", type=str, default="evaluation", help="Directory of the testcases")
     parser.add_argument("--framework", type=str, default=None, help="Framework for serving")
+    parser.add_argument("--num_lines", type=int, nargs="+", default=[170], help="Number of lines per prompt")
     parser.add_argument("--rep_file", type=str, help="path to load the reparameterization factors")
     # quantization config
     parser.add_argument("--w_group_size", type=int, default=128)

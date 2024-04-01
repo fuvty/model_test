@@ -3,13 +3,56 @@ import os
 from tqdm import tqdm
 
 import torch
+from accelerate import init_empty_weights, load_checkpoint_and_dispatch, dispatch_model, infer_auto_device_map
+
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 from longeval.utils import maybe_monkey_patch, load_testcases, test_topics_one_sample, test_lines_one_sample
 
-from qllm_eval.utils import build_model_and_enc
-
 from playground.models.llama.modeling_llama import LlamaModel_use_block_sparse_attention_lut
 from playground.attention.sparse_attention import set_static_attention_lut
+
+# build model and tokenizer
+def build_model_and_enc(model_path, use_flash_attn, kv_bit=16, kv_group_size=128):
+    print(f"* Building model {model_path}")
+
+    # weither trust remote code
+    if 'chatglm' in model_path or 'mpt' in model_path or 'stable' in model_path:
+        trust_remote_code = True
+    else:
+        trust_remote_code = False
+
+    config = AutoConfig.from_pretrained(model_path, trust_remote_code=trust_remote_code)
+    if use_flash_attn and 'chatglm' not in model_path and 'mpt' not in model_path:
+        config._flash_attn_2_enabled = True
+        config._attn_implementation = "flash_attention_2"
+    elif use_flash_attn and 'mpt' in model_path:
+        config.attn_config['attn_impl'] = 'triton'
+    else:
+        config._flash_attn_2_enabled = False
+        config._attn_implementation = None
+
+    config._attn_implementation = "eager"
+    config._attn_implementation_internal = "eager"
+
+    # add the kv quantization parameters
+    config.kv_bit = kv_bit
+    config.kv_group_size = kv_group_size
+
+    # load tokenizer
+    if 'mpt' in model_path or 'stable' in model_path:
+        use_fast = True
+    else:
+        use_fast = False
+    enc = AutoTokenizer.from_pretrained(model_path, use_fast=use_fast, trust_remote_code=trust_remote_code)
+
+    # load model
+    kwargs = {"torch_dtype": torch.float16, "device_map": "auto"}
+    # kwargs = {"torch_dtype": torch.float16}
+    model = AutoModelForCausalLM.from_pretrained(model_path, config=config, trust_remote_code=trust_remote_code, **kwargs)
+    # model = AutoModelForCausalLM.from_config(config, trust_remote_code=trust_remote_code, **kwargs)
+    return model, enc
+
 
 def get_output_dir(args):
     path = args.model_name_or_path
@@ -105,5 +148,8 @@ if __name__ == "__main__":
         model.model.use_block_sparse_attention_lut = LlamaModel_use_block_sparse_attention_lut.__get__(model.model)
         model.model.use_block_sparse_attention_lut()
         set_static_attention_lut(args.lut_path, None, model.model.layers, args.block_size)
-    
+
+    # with init_empty_weights():
+    # model = load_checkpoint_and_dispatch(model, checkpoint=args.model_name_or_path, device_map='auto', no_split_module_classes=["LlamaDecoderLayer"])
+
     accuracy_list = longeval_test(model, tokenizer, output_dir, args)
