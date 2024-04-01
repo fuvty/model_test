@@ -2,16 +2,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--file", type=str, default="test_summary.txt")
+parser.add_argument("--loss-file", type=str, default="opt_importance_loss.csv")
+parser.add_argument("--output", type=str, default="combined_test_summary")
+args = parser.parse_args()
+
+print(args)
 
 # Load the csv files
-loss_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/q_long/output_pareto/opt_importance_loss.csv"
+# loss_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/q_long/output_pareto/opt_importance_loss.csv"
+loss_path = args.loss_file
 opt_importance_loss = pd.read_csv(loss_path, index_col=0)
 
 # set the column to 1k, 2k, 4k
-opt_importance_columns = ['1k_loss', '2k_loss', '3k_loss', '4k_loss']
-# opt_importance_columns = ['1k_loss', '2k_loss', '4k_loss']
+# opt_importance_columns = ['1k_loss', '2k_loss', '3k_loss', '4k_loss']
+opt_importance_columns = ['1k_loss', '2k_loss', '4k_loss']
 opt_importance_loss.columns = opt_importance_columns
-test_summary = pd.read_csv('/share/futianyu/repo/qllm-eval/qllm_eval/evaluation/q_long/test_summary.csv')
+test_summary = pd.read_csv(args.file)
 
 # Pivot test_summary to have two columns for the two Test Dir
 test_summary_pivot = test_summary.pivot(index='Plan ID', columns='Test Dir', values='Accuracy')
@@ -37,7 +47,7 @@ combined_df.rename(columns=column_key_map, inplace=True)
 print(combined_df)
 
 # save combined_df as csv
-combined_df.to_csv("combined_df.csv", index=False)
+combined_df.to_csv(args.output+".csv", index=False)
 
 """
 visualization
@@ -60,8 +70,8 @@ fig = px.parallel_coordinates(combined_df,
                               color_continuous_midpoint=combined_df[final_objective].mean())
 
 # Save the figure as an HTML file
-fig.write_html('parallel_coordinates.html')
+# fig.write_html('parallel_coordinates.html')
 # Save the figure as a PNG file
-fig.write_image('parallel_coordinates.jpg')
+fig.write_image(args.output+'.jpg')
 
 print('done')

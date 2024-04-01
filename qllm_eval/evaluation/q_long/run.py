@@ -4,16 +4,30 @@ import subprocess
 import tempfile
 from threading import Thread
 from time import sleep
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--model-path", type=str, default="/share/datasets/public_models/lmsys_vicuna-7b-v1.5-16k")
+parser.add_argument("--lut-base-path", type=str, default="/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/output_pareto")
+parser.add_argument("--summary-file", type=str, default="test_summary.txt")
+args = parser.parse_args()
+
+print(args)
 
 # Base settings
-model_path = "/share/datasets/public_models/lmsys_vicuna-7b-v1.5-16k"
+# model_path = "/share/datasets/public_models/lmsys_vicuna-7b-v1.5-16k"
+# model_path = "/share/datasets/public_models/lmsys_vicuna-13b-v1.5-16k"
+model_path = args.model_path
 task = "lines"
 block_size = 64
-lut_base_path = "/share/futianyu/repo/NLP-playground/local/universal/test-model/profile_test"
+# lut_base_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-13b-v1.5/output_pareto"
+# lut_base_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/output_pareto"
+# lut_base_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/q_long/output_pareto"
+lut_base_path = args.lut_base_path
 mem_threshold_mb = 30 * 1024 # the least memory to run the model
 gpu_pool = ["0", "1", "2", "3", "4", "5", "6", "7"]
 max_num_jobs = 8
-summary_file = "test_summary.txt"
+summary_file = args.summary_file
 gpu_in_use = {gpu: False for gpu in gpu_pool}
 
 def get_best_gpu(mem_threshold_mb=40*1024):
@@ -83,6 +97,7 @@ def run_tests():
         if match := re.match(r'lut_(\d+)_plan_(\d+)\.pt', lut_file):
             token_count = match.group(1)
             test_dir = {
+                "1024": "1k_cases",
                 "2048": "2k_cases",
                 "4096": "4k_cases",
                 "8192": "8k_cases",
