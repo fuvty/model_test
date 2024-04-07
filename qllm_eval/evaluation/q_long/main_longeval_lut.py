@@ -124,9 +124,9 @@ if __name__ == "__main__":
     parser.add_argument("--longchat_flash_attn", action='store_true', help="Only apply to longchat models. Whether to enable flash attention to save memory, but slower.")
     parser.add_argument("--longchat_ratio", type=int, default=8, help="Only apply to longchat models. Use ratio=8 for 16K context length model. Only ratio=8 is supported now.")
     parser.add_argument("--eval_shortest_only", action='store_true', default=0, help="Only eval the shortest case for illustration purpose")
-    parser.add_argument("--test_dir", type=str, default="evaluation", help="Directory of the testcases")
+    parser.add_argument("--test_dir", type=str, default="15k_cases", help="Directory of the testcases")
     parser.add_argument("--framework", type=str, default=None, help="Framework for serving")
-    parser.add_argument("--num_lines", type=int, nargs="+", default=[170], help="Number of lines per prompt")
+    parser.add_argument("--num_lines", type=int, nargs="+", default=[650], help="Number of lines per prompt")
     # quantization config
     parser.add_argument("--kv_group_size", type=int, default=128)
     parser.add_argument("--kv_bit", type=int, default=16)
@@ -141,6 +141,9 @@ if __name__ == "__main__":
     output_dir = get_output_dir(args)
 
     model, tokenizer = build_model_and_enc(args.model_name_or_path, args.use_flash_attn, args.kv_bit, args.kv_group_size)
+
+    # with init_empty_weights():
+    # model = load_checkpoint_and_dispatch(model, checkpoint=args.model_name_or_path, device_map='auto', no_split_module_classes=["LlamaDecoderLayer"])
 
     # sparse model
     if args.lut_path is not None:
@@ -158,7 +161,5 @@ if __name__ == "__main__":
         # model.model.use_block_sparse_attention_lut()
         # set_static_attention_lut(args.lut_path, None, model.model.layers, args.block_size)
 
-    # with init_empty_weights():
-    model = load_checkpoint_and_dispatch(model, checkpoint=args.model_name_or_path, device_map='auto', no_split_module_classes=["LlamaDecoderLayer"])
 
     accuracy_list = longeval_test(model, tokenizer, output_dir, args)
