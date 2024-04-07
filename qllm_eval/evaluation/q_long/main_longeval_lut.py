@@ -10,7 +10,7 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 from longeval.utils import maybe_monkey_patch, load_testcases, test_topics_one_sample, test_lines_one_sample
 
 from playground.models.llama.modeling_llama import LlamaModel_use_block_sparse_attention_lut
-from playground.attention.sparse_attention import set_static_attention_lut
+from playground.attention.set import set_static_attention_lut
 
 # build model and tokenizer
 def build_model_and_enc(model_path, use_flash_attn, kv_bit=16, kv_group_size=128):
@@ -146,10 +146,19 @@ if __name__ == "__main__":
     if args.lut_path is not None:
         print("Using lut from {}, with block size {}".format(args.lut_path, args.block_size))
         model.model.use_block_sparse_attention_lut = LlamaModel_use_block_sparse_attention_lut.__get__(model.model)
-        model.model.use_block_sparse_attention_lut()
-        set_static_attention_lut(args.lut_path, None, model.model.layers, args.block_size)
+
+        sparse_decode = True
+        permute_head = True
+        model.model.use_block_sparse_attention_lut(permute_head, sparse_decode)
+        print("Using lut from {}, block size {}".format(args.lut_path, args.block_size))
+        set_static_attention_lut(
+            args.lut_path, None, model.model.layers, args.block_size, permute_head, sparse_decode
+        )
+
+        # model.model.use_block_sparse_attention_lut()
+        # set_static_attention_lut(args.lut_path, None, model.model.layers, args.block_size)
 
     # with init_empty_weights():
-    # model = load_checkpoint_and_dispatch(model, checkpoint=args.model_name_or_path, device_map='auto', no_split_module_classes=["LlamaDecoderLayer"])
+    model = load_checkpoint_and_dispatch(model, checkpoint=args.model_name_or_path, device_map='auto', no_split_module_classes=["LlamaDecoderLayer"])
 
     accuracy_list = longeval_test(model, tokenizer, output_dir, args)
