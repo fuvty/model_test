@@ -5,7 +5,7 @@ import pandas as pd
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--file", type=str, default="test_summary.txt")
+parser.add_argument("--file", type=str, default="test_summary.csv")
 parser.add_argument("--loss-file", type=str, default="opt_importance_loss.csv")
 parser.add_argument("--output", type=str, default="combined_test_summary")
 args = parser.parse_args()

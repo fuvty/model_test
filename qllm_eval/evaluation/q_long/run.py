@@ -5,6 +5,7 @@ import tempfile
 from threading import Thread
 from time import sleep
 import argparse
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model-path", type=str, default="/share/datasets/public_models/lmsys_vicuna-7b-v1.5-16k")
@@ -25,8 +26,9 @@ block_size = 64
 # lut_base_path = "/share/futianyu/repo/NLP-playground/local/universal/vicuna-7b-v1.5/q_long/output_pareto"
 lut_base_path = args.lut_base_path
 mem_threshold_mb = 30 * 1024 # the least memory to run the model
-gpu_pool = ["0", "1", "2", "3", "4", "5", "6", "7"]
-max_num_jobs = 8
+# gpu_pool = ["0", "1", "2", "3", "4", "5", "6", "7"]
+gpu_pool = ["0", "1", "2", "3"]
+max_num_jobs = 4
 summary_file = args.summary_file
 gpu_in_use = {gpu: False for gpu in gpu_pool}
 
@@ -93,7 +95,7 @@ def run_tests():
     results = []
     best_gpus = []
 
-    for lut_file in os.listdir(lut_base_path):
+    for lut_file in tqdm(sorted(os.listdir(lut_base_path))):
         if match := re.match(r'lut_(\d+)_plan_(\d+)\.pt', lut_file):
             token_count = match.group(1)
             test_dir = {

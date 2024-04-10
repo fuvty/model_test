@@ -408,9 +408,10 @@ def generate_lines_testcases(cfgs, output_dir):
             prompt_header = "Below is a record of lines I want you to remember. " + \
                             "Each line begins with 'line <line index>' and contains " + \
                             "a '<REGISTER_CONTENT>' at the end of the line as a numerical value. " + \
-                            "For each line index, memorize its corresponding <REGISTER_CONTENT>. At " + \
-                            "the end of the record, I will ask you to retrieve the corresponding " + \
-                            "<REGISTER_CONTENT> of a certain line index. Now the record start:\n\n"
+                            "For each line index, memorize its corresponding <REGISTER_CONTENT>. "
+                            # "At the end of the record, I will ask you to retrieve the corresponding <REGISTER_CONTENT> of a certain line index." + \
+                            # "At the end of the record, I will ask you to retrieve the corresponding <REGISTER_CONTENT> of a certain line index." + \
+                            # "Now the record start:\n\n"
     
             lines = []
 
@@ -427,7 +428,9 @@ def generate_lines_testcases(cfgs, output_dir):
 
             expected_number, correct_line = retrieve_expected(lines, random_num)
             lines.insert(0, f"{prompt_header}")
+            lines.insert(1, f"At the end of the record, I will ask you to retrieve the corresponding <REGISTER_CONTENT> in line {random_idx}. " + "Now the record start:\n\n")
             lines.insert(len(lines), f"\nNow the record is over. Tell me what is the <REGISTER_CONTENT> in line {random_idx}? I need the number.")
+
             prompt = generate_prompt_from_lines(lines)
 
             output = {
